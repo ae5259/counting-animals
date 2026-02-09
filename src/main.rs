@@ -20,7 +20,7 @@ fn main() {
     let parsed_data = match serde_json::from_str::<Vec<RequestItem>>(&input) {
         Ok(requests) => requests,
         Err(err) => {
-            println!("Error occured while reading file: {}", err.to_string());
+            println!("Error occured while reading file: {}", err);
 
             vec![]
         }
@@ -42,10 +42,7 @@ fn main() {
                 println!("Request successfull: {:?}", ok)
             }
             Err(err) => {
-                println!(
-                    "Error occured while sending a TCP request: {}",
-                    err.to_string()
-                )
+                println!("Error occured while sending a TCP request: {}", err)
             }
         };
     }
