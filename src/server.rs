@@ -17,7 +17,10 @@ fn main() {
     let mut handles = vec![];
 
     let state1 = Arc::clone(&state);
-    let state2 = Arc::clone(&state);
+    let state2 = state.clone();
+
+    let mut a = state2.lock().unwrap();
+    a.insert(String::from(""), 10);
 
     for port in ports {
         let state_clone = Arc::clone(&state);
@@ -48,11 +51,9 @@ fn main() {
     }
 
     // Update global state
-    thread::spawn(move || {
-        let state = state2.lock().unwrap();
-
-        if state != state1.lock().unwrap() {}
-    });
+    // thread::spawn(move || {
+    //     let state = state2.lock().unwrap();
+    // });
     for handle in handles {
         handle.join().expect("Server thread panicked")
     }
