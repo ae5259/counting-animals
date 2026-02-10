@@ -6,13 +6,18 @@ use std::thread;
 
 use std::sync::{Arc, Mutex};
 
+#[allow(dead_code)]
 fn main() {
     let args: Vec<String> = env::args().collect();
     let ports = args[1..].to_vec();
 
-    let state = Arc::new(Mutex::new(HashMap::new()));
+    let m = Mutex::new(HashMap::new());
+    let state = Arc::new(m);
 
     let mut handles = vec![];
+
+    let state1 = Arc::clone(&state);
+    let state2 = Arc::clone(&state);
 
     for port in ports {
         let state_clone = Arc::clone(&state);
@@ -42,6 +47,12 @@ fn main() {
         handles.push(handle);
     }
 
+    // Update global state
+    thread::spawn(move || {
+        let state = state2.lock().unwrap();
+
+        if state != state1.lock().unwrap() {}
+    });
     for handle in handles {
         handle.join().expect("Server thread panicked")
     }
