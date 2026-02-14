@@ -27,4 +27,35 @@ I hope to implement in in the future.
 - There is extra server implementation in TypeScript I wrote to test out the
   client with basic server, its content is in [serve.ts](./src/serve.ts)
 
+## How to run.
+
+### Building
+You will need to compile the client using `cargo` or `nix`(just a wrapper) because it has a dependency for serializing.
+```bash
+nix build
+# or
+cargo build
+```
+
+Just compile the `server.rs` with `rustc`.
+```bash
+rustc server.rs
+```
+
+Optionally, copy the executable files to the `bin/` folder:
+```bash
+cp result/bin/task-rs bin/ # built fix nix
+cp ./server bin/
+```
+
+### Running
+Client:
+```bash
+cat data.json | bin/client
+```
+Server:
+```bash
+bin/server
+```
+
 ### Have fun, make cool things.

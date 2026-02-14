@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
 
+mod test;
+
 #[derive(Debug, Serialize, Deserialize)]
 struct RequestItem {
     socket_address: String,

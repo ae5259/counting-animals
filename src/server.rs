@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::env;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
+use std::{env, fs, time};
 
 use std::sync::{Arc, Mutex};
 
@@ -16,11 +16,7 @@ fn main() {
 
     let mut handles = vec![];
 
-    let state1 = Arc::clone(&state);
-    let state2 = state.clone();
-
-    let mut a = state2.lock().unwrap();
-    a.insert(String::from(""), 10);
+    let check_state = state.clone();
 
     for port in ports {
         let state_clone = Arc::clone(&state);
@@ -51,9 +47,23 @@ fn main() {
     }
 
     // Update global state
-    // thread::spawn(move || {
-    //     let state = state2.lock().unwrap();
-    // });
+    thread::spawn(move || {
+        let state = check_state.lock().unwrap();
+
+        let five_seconds = time::Duration::from_secs(5);
+
+        loop {
+            thread::sleep(five_seconds);
+
+            println!("{:?}", state);
+
+            match fs::write("./dummy", format!("{:?}", state)) {
+                Ok(_) => println!("State updated"),
+                Err(_) => println!("Failed to update state"),
+            }
+        }
+    });
+
     for handle in handles {
         handle.join().expect("Server thread panicked")
     }
@@ -69,19 +79,24 @@ fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<HashMap<String, u8>
                 println!("Client disconnected.");
                 return;
             }
-            println!("Received text: {}", line.split(" ").collect::<String>());
+            println!(
+                "Received text: {:?}",
+                line.split(" ").collect::<Vec<&str>>()
+            );
+            let data = line.split(" ").collect::<Vec<&str>>();
+            let animal = data.first().unwrap();
+
             let mut state_guard = state.lock().unwrap();
+            let count = state_guard.entry((*animal).to_string()).or_insert(1);
+            *count += 1;
 
-            state_guard.insert("dogs".to_string(), 1);
-            println!("Current state: {:?}", state_guard);
-
-            let response = "Message received!\n";
+            let response = "message received!\n";
             stream
                 .write_all(response.as_bytes())
-                .expect("Failed to write response");
+                .expect("failed to write response");
         }
         Err(e) => {
-            eprintln!("Failed to read from stream: {}", e);
+            eprintln!("failed to read from stream: {}", e);
         }
     }
 }
