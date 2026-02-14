@@ -12,10 +12,7 @@ fn main() {
 
     let m = Mutex::new(HashMap::new());
     let state = Arc::new(m);
-
     let mut handles = vec![];
-
-    let check_state = state.clone();
 
     for port in ports {
         let state_clone = Arc::clone(&state);
@@ -47,14 +44,11 @@ fn main() {
 
     // Update global state
     thread::spawn(move || {
-        let state = check_state.lock().unwrap();
-
-        let five_seconds = time::Duration::from_secs(5);
+        let timeout_seconds = time::Duration::from_secs(5);
 
         loop {
-            thread::sleep(five_seconds);
-
-            println!("{:?}", state);
+            thread::sleep(timeout_seconds);
+            let state = state.lock().unwrap();
 
             match fs::write("./dummy", format!("{:?}", state)) {
                 Ok(_) => println!("State updated"),
@@ -78,16 +72,14 @@ fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<HashMap<String, u8>
                 println!("Client disconnected.");
                 return;
             }
-            println!(
-                "Received text: {:?}",
-                line.split(" ").collect::<Vec<&str>>()
-            );
+
             let data = line.split(" ").collect::<Vec<&str>>();
-            let animal = data.first().unwrap();
+
+            let count: u8 = data.first().unwrap().parse().unwrap();
+            let animal = data.get(1).unwrap();
 
             let mut state_guard = state.lock().unwrap();
-            let count = state_guard.entry((*animal).to_string()).or_insert(1);
-            *count += 1;
+            *state_guard.entry(animal.to_string()).or_insert(0) += count;
 
             let response = "message received!\n";
             stream
