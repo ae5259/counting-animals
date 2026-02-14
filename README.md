@@ -25,6 +25,9 @@ Now there is a special thread for writing down the current state to a file
 called `dummy`. However, it doesn't check if the state has been updated or not
 _yet_.
 
+#### 10 minutes later
+It works now too.
+
 - Client implementation is in [main.rs](./src/main.rs)
 - Server implementation is in [server.rs](./src/server.rs)
 
