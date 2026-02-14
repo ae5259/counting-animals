@@ -6,7 +6,6 @@ use std::{env, fs, time};
 
 use std::sync::{Arc, Mutex};
 
-#[allow(dead_code)]
 fn main() {
     let args: Vec<String> = env::args().collect();
     let ports = args[1..].to_vec();
