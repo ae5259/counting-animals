@@ -6,11 +6,22 @@ use std::{env, fs, time};
 
 use std::sync::{Arc, Mutex};
 
+#[derive(Debug)]
+struct State {
+    data: HashMap<String, u8>,
+    is_changed: bool,
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let ports = args[1..].to_vec();
 
-    let m = Mutex::new(HashMap::new());
+    let base = State {
+        data: HashMap::new(),
+        is_changed: false,
+    };
+
+    let m = Mutex::new(base);
     let state = Arc::new(m);
     let mut handles = vec![];
 
@@ -48,11 +59,17 @@ fn main() {
 
         loop {
             thread::sleep(timeout_seconds);
-            let state = state.lock().unwrap();
+            let mut state = state.lock().unwrap();
 
-            match fs::write("./dummy", format!("{:?}", state)) {
-                Ok(_) => println!("State updated"),
-                Err(_) => println!("Failed to update state"),
+            if state.is_changed {
+                match fs::write("./dummy", format!("{:?}", state)) {
+                    Ok(_) => {
+                        state.is_changed = false;
+
+                        println!("State updated");
+                    }
+                    Err(_) => println!("Failed to update state"),
+                }
             }
         }
     });
@@ -62,7 +79,7 @@ fn main() {
     }
 }
 
-fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<HashMap<String, u8>>>) {
+fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<State>>) {
     let mut reader = BufReader::new(&stream);
     let mut line = String::new();
 
@@ -79,7 +96,8 @@ fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<HashMap<String, u8>
             let animal = data.get(1).unwrap();
 
             let mut state_guard = state.lock().unwrap();
-            *state_guard.entry(animal.to_string()).or_insert(0) += count;
+            *state_guard.data.entry(animal.to_string()).or_insert(0) += count;
+            state_guard.is_changed = true;
 
             let response = "message received!\n";
             stream
