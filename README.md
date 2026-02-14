@@ -55,7 +55,7 @@ cat data.json | bin/client
 ```
 Server:
 ```bash
-bin/server
+bin/server 3000 3001 3002
 ```
 
 ### Have fun, make cool things.
