@@ -12,6 +12,7 @@ struct RequestItem {
 
 fn main() {
     let mut input = String::new();
+
     match io::stdin().read_to_string(&mut input) {
         Ok(num) => println!("Read {} bytes from stdin", num),
         Err(error) => println!("Error occurred: {}", error),

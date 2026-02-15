@@ -59,6 +59,8 @@ fn main() {
 
         loop {
             thread::sleep(timeout_seconds);
+
+            // Unwrap is okay here, because it's `locked()` only once in this thread. AFAIK.
             let mut state = state.lock().unwrap();
 
             if state.is_changed {
@@ -92,9 +94,12 @@ fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<State>>) {
 
             let data = line.split(" ").collect::<Vec<&str>>();
 
+            // data is always [&str, &str], so it's safe to unwrap while parsing the `count`
+            // element with index 1 also exists
             let count: u8 = data.first().unwrap().parse().unwrap();
             let animal = data.get(1).unwrap();
 
+            // same as above
             let mut state_guard = state.lock().unwrap();
             *state_guard.data.entry(animal.to_string()).or_insert(0) += count;
             state_guard.is_changed = true;
