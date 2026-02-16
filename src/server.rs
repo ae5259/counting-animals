@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::{env, fs, time};
-
-use std::sync::{Arc, Mutex};
 
 #[derive(Debug)]
 struct State {
